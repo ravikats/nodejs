@@ -20,7 +20,7 @@ create table if not exists public.policies (
     policy_type in ('Health', 'Life', 'Auto', 'Home', 'Travel', 'Business', 'Other')
   ),
   constraint policies_billing_frequency_check check (
-    billing_frequency in ('one_time', 'quarterly')
+    billing_frequency in ('one_time', 'quarterly', 'yearly')
   ),
   constraint policies_reminder_days_check check (
     reminder_days <@ array[30, 7, 1, 0]
@@ -33,18 +33,12 @@ alter table public.policies
 alter table public.policies
   alter column billing_frequency set default 'quarterly';
 
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'policies_billing_frequency_check'
-  ) then
-    alter table public.policies
-      add constraint policies_billing_frequency_check
-      check (billing_frequency in ('one_time', 'quarterly'));
-  end if;
-end $$;
+alter table public.policies
+  drop constraint if exists policies_billing_frequency_check;
+
+alter table public.policies
+  add constraint policies_billing_frequency_check
+  check (billing_frequency in ('one_time', 'quarterly', 'yearly'));
 
 create table if not exists public.sent_reminders (
   id uuid primary key default gen_random_uuid(),

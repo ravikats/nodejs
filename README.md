@@ -7,7 +7,7 @@ A simple Next.js app for tracking insurance policies and sending reminder emails
 - Add, edit, and delete insurance policies
 - Store provider, policy number, type, premium amount, due dates, expiry dates, notes, reminder email, and reminder days
 - Reminder options for 30 days before, 7 days before, 1 day before, and on the due date
-- One-time or quarterly premium reminder cycles
+- One-time, quarterly, or yearly premium reminder cycles
 - Dashboard for upcoming reminders and overdue policies
 - Daily protected cron endpoint for sending Resend emails
 - Supabase schema with duplicate-send protection
@@ -69,7 +69,7 @@ or:
 /api/reminders/run?secret=your-cron-secret
 ```
 
-Every run checks active policies. If today's date equals `target_date - reminder_days`, it sends an email and records the send in `sent_reminders` so the same reminder is not sent twice. For quarterly policies, premium target dates repeat every three months from the first premium due date.
+Every run checks active policies. If today's date equals `target_date - reminder_days`, it sends an email and records the send in `sent_reminders` so the same reminder is not sent twice. For quarterly and yearly policies, premium target dates repeat from the first premium due date.
 
 ## Vercel Cron
 

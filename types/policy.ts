@@ -10,7 +10,7 @@ export const POLICY_TYPES = [
 
 export type PolicyType = (typeof POLICY_TYPES)[number];
 
-export const BILLING_FREQUENCIES = ["one_time", "quarterly"] as const;
+export const BILLING_FREQUENCIES = ["one_time", "quarterly", "yearly"] as const;
 
 export type BillingFrequency = (typeof BILLING_FREQUENCIES)[number];
 

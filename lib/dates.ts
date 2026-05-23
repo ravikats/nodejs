@@ -1,4 +1,4 @@
-import { addDays, addMonths, differenceInCalendarDays, format, parseISO, startOfToday, subDays } from "date-fns";
+import { addDays, addMonths, addYears, differenceInCalendarDays, format, parseISO, startOfToday, subDays } from "date-fns";
 import type { Policy, ReminderKind, UpcomingReminder } from "@/types/policy";
 
 export const DEFAULT_REMINDER_DAYS = [30, 7, 1, 0];
@@ -29,7 +29,7 @@ export function getPremiumTargetDates(policy: Policy, today = startOfToday(), ho
   if (!policy.premium_due_date) return [];
 
   const firstDueDate = parseISO(policy.premium_due_date);
-  if (policy.billing_frequency !== "quarterly") {
+  if (policy.billing_frequency === "one_time") {
     return [policy.premium_due_date];
   }
 
@@ -37,14 +37,16 @@ export function getPremiumTargetDates(policy: Policy, today = startOfToday(), ho
   const latestUsefulDate = addDays(today, horizonDays + maxReminderDays);
   const dates: string[] = [];
   let current = firstDueDate;
+  const cycleMonths = policy.billing_frequency === "yearly" ? 12 : 3;
+  const staleWindowDays = cycleMonths === 12 ? 370 : 95;
 
-  while (current < subDays(today, 95)) {
-    current = addMonths(current, 3);
+  while (current < subDays(today, staleWindowDays)) {
+    current = cycleMonths === 12 ? addYears(current, 1) : addMonths(current, 3);
   }
 
   while (current <= latestUsefulDate) {
     dates.push(isoDate(current));
-    current = addMonths(current, 3);
+    current = cycleMonths === 12 ? addYears(current, 1) : addMonths(current, 3);
   }
 
   return dates;

@@ -209,7 +209,13 @@ export default function HomePage() {
                       <span>{policy.provider}</span>
                       <span>Policy #{policy.policy_number || "Not set"}</span>
                       <span>Due {dateLabel(policy.premium_due_date)}</span>
-                      <span>{policy.billing_frequency === "quarterly" ? "Quarterly" : "One-time"}</span>
+                      <span>
+                        {policy.billing_frequency === "yearly"
+                          ? "Yearly"
+                          : policy.billing_frequency === "quarterly"
+                            ? "Quarterly"
+                            : "One-time"}
+                      </span>
                       <span>Expires {dateLabel(policy.expiry_date)}</span>
                       <span>{moneyLabel(policy.premium_amount)}</span>
                     </div>
@@ -299,6 +305,7 @@ export default function HomePage() {
                 <label htmlFor="billing_frequency">Premium cycle</label>
                 <select id="billing_frequency" value={form.billing_frequency} onChange={(event) => updateForm("billing_frequency", event.target.value as PolicyInput["billing_frequency"])}>
                   <option value="quarterly">Quarterly</option>
+                  <option value="yearly">Yearly</option>
                   <option value="one_time">One-time</option>
                 </select>
               </div>
