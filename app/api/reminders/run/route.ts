@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isoDate, getReminderDate } from "@/lib/dates";
+import { isoDate, getPolicyReminderTargets, getReminderDate } from "@/lib/dates";
 import { sendReminderEmail } from "@/lib/email";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import type { Policy, ReminderKind } from "@/types/policy";
@@ -28,14 +28,9 @@ export async function GET(request: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   for (const policy of (policies ?? []) as Policy[]) {
-    const targets: Array<{ kind: ReminderKind; date: string | null }> = [
-      { kind: "premium_due", date: policy.premium_due_date },
-      { kind: "policy_expiry", date: policy.expiry_date }
-    ];
+    const targets: Array<{ kind: ReminderKind; date: string }> = getPolicyReminderTargets(policy, new Date(), 45);
 
     for (const target of targets) {
-      if (!target.date) continue;
-
       for (const daysBefore of policy.reminder_days) {
         if (getReminderDate(target.date, daysBefore) !== today) continue;
 

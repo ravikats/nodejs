@@ -12,6 +12,7 @@ const emptyForm: PolicyInput = {
   policy_type: "Health",
   premium_amount: null,
   premium_due_date: "",
+  billing_frequency: "quarterly",
   expiry_date: "",
   notes: "",
   reminder_days: DEFAULT_REMINDER_DAYS,
@@ -27,6 +28,7 @@ function toForm(policy: Policy): PolicyInput {
     policy_type: policy.policy_type,
     premium_amount: policy.premium_amount,
     premium_due_date: policy.premium_due_date ?? "",
+    billing_frequency: policy.billing_frequency ?? "one_time",
     expiry_date: policy.expiry_date ?? "",
     notes: policy.notes ?? "",
     reminder_days: policy.reminder_days,
@@ -207,6 +209,7 @@ export default function HomePage() {
                       <span>{policy.provider}</span>
                       <span>Policy #{policy.policy_number || "Not set"}</span>
                       <span>Due {dateLabel(policy.premium_due_date)}</span>
+                      <span>{policy.billing_frequency === "quarterly" ? "Quarterly" : "One-time"}</span>
                       <span>Expires {dateLabel(policy.expiry_date)}</span>
                       <span>{moneyLabel(policy.premium_amount)}</span>
                     </div>
@@ -292,6 +295,16 @@ export default function HomePage() {
                 <label htmlFor="premium_due_date">Premium due date</label>
                 <input id="premium_due_date" type="date" value={form.premium_due_date ?? ""} onChange={(event) => updateForm("premium_due_date", event.target.value)} />
               </div>
+              <div className="field">
+                <label htmlFor="billing_frequency">Premium cycle</label>
+                <select id="billing_frequency" value={form.billing_frequency} onChange={(event) => updateForm("billing_frequency", event.target.value as PolicyInput["billing_frequency"])}>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="one_time">One-time</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="two-col">
               <div className="field">
                 <label htmlFor="expiry_date">Expiry date</label>
                 <input id="expiry_date" type="date" value={form.expiry_date ?? ""} onChange={(event) => updateForm("expiry_date", event.target.value)} />

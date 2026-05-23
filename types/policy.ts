@@ -10,6 +10,10 @@ export const POLICY_TYPES = [
 
 export type PolicyType = (typeof POLICY_TYPES)[number];
 
+export const BILLING_FREQUENCIES = ["one_time", "quarterly"] as const;
+
+export type BillingFrequency = (typeof BILLING_FREQUENCIES)[number];
+
 export type Policy = {
   id: string;
   created_at: string;
@@ -20,6 +24,7 @@ export type Policy = {
   policy_type: PolicyType;
   premium_amount: number | null;
   premium_due_date: string | null;
+  billing_frequency: BillingFrequency;
   expiry_date: string | null;
   notes: string | null;
   reminder_days: number[];

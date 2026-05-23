@@ -1,4 +1,4 @@
-import { addDays, differenceInCalendarDays, format, parseISO, startOfToday, subDays } from "date-fns";
+import { addDays, addMonths, differenceInCalendarDays, format, parseISO, startOfToday, subDays } from "date-fns";
 import type { Policy, ReminderKind, UpcomingReminder } from "@/types/policy";
 
 export const DEFAULT_REMINDER_DAYS = [30, 7, 1, 0];
@@ -25,19 +25,50 @@ export function getReminderDate(targetDate: string, daysBefore: number) {
   return isoDate(subDays(parseISO(targetDate), daysBefore));
 }
 
+export function getPremiumTargetDates(policy: Policy, today = startOfToday(), horizonDays = 45) {
+  if (!policy.premium_due_date) return [];
+
+  const firstDueDate = parseISO(policy.premium_due_date);
+  if (policy.billing_frequency !== "quarterly") {
+    return [policy.premium_due_date];
+  }
+
+  const maxReminderDays = Math.max(...policy.reminder_days, 0);
+  const latestUsefulDate = addDays(today, horizonDays + maxReminderDays);
+  const dates: string[] = [];
+  let current = firstDueDate;
+
+  while (current < subDays(today, 95)) {
+    current = addMonths(current, 3);
+  }
+
+  while (current <= latestUsefulDate) {
+    dates.push(isoDate(current));
+    current = addMonths(current, 3);
+  }
+
+  return dates;
+}
+
+export function getPolicyReminderTargets(policy: Policy, today = startOfToday(), horizonDays = 45) {
+  const premiumTargets = getPremiumTargetDates(policy, today, horizonDays).map((date) => ({
+    kind: "premium_due" as ReminderKind,
+    date
+  }));
+  const expiryTargets = policy.expiry_date ? [{ kind: "policy_expiry" as ReminderKind, date: policy.expiry_date }] : [];
+
+  return [...premiumTargets, ...expiryTargets];
+}
+
 export function getUpcomingReminders(policies: Policy[], horizonDays = 45): UpcomingReminder[] {
   const today = startOfToday();
   const horizon = addDays(today, horizonDays);
   const reminders: UpcomingReminder[] = [];
 
   for (const policy of policies.filter((item) => item.is_active)) {
-    const targets: Array<{ kind: ReminderKind; date: string | null }> = [
-      { kind: "premium_due", date: policy.premium_due_date },
-      { kind: "policy_expiry", date: policy.expiry_date }
-    ];
+    const targets = getPolicyReminderTargets(policy, today, horizonDays);
 
     for (const target of targets) {
-      if (!target.date) continue;
       const targetDate = parseISO(target.date);
       const targetOverdue = differenceInCalendarDays(targetDate, today) < 0;
 

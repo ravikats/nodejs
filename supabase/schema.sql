@@ -10,6 +10,7 @@ create table if not exists public.policies (
   policy_type text not null default 'Other',
   premium_amount numeric(12, 2),
   premium_due_date date,
+  billing_frequency text not null default 'quarterly',
   expiry_date date,
   notes text,
   reminder_days integer[] not null default array[30, 7, 1, 0],
@@ -18,10 +19,32 @@ create table if not exists public.policies (
   constraint policies_policy_type_check check (
     policy_type in ('Health', 'Life', 'Auto', 'Home', 'Travel', 'Business', 'Other')
   ),
+  constraint policies_billing_frequency_check check (
+    billing_frequency in ('one_time', 'quarterly')
+  ),
   constraint policies_reminder_days_check check (
     reminder_days <@ array[30, 7, 1, 0]
   )
 );
+
+alter table public.policies
+  add column if not exists billing_frequency text not null default 'quarterly';
+
+alter table public.policies
+  alter column billing_frequency set default 'quarterly';
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'policies_billing_frequency_check'
+  ) then
+    alter table public.policies
+      add constraint policies_billing_frequency_check
+      check (billing_frequency in ('one_time', 'quarterly'));
+  end if;
+end $$;
 
 create table if not exists public.sent_reminders (
   id uuid primary key default gen_random_uuid(),

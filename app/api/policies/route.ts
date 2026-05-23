@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { DEFAULT_REMINDER_DAYS } from "@/lib/dates";
 import { getErrorMessage } from "@/lib/errors";
-import { POLICY_TYPES, type PolicyInput } from "@/types/policy";
+import { BILLING_FREQUENCIES, POLICY_TYPES, type PolicyInput } from "@/types/policy";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +25,7 @@ function cleanPolicyInput(input: Partial<PolicyInput>): PolicyInput {
         ? null
         : Number(input.premium_amount),
     premium_due_date: input.premium_due_date || null,
+    billing_frequency: BILLING_FREQUENCIES.includes(input.billing_frequency as any) ? input.billing_frequency! : "quarterly",
     expiry_date: input.expiry_date || null,
     notes: input.notes?.trim() || null,
     reminder_days: reminderDays.length ? reminderDays : DEFAULT_REMINDER_DAYS,
